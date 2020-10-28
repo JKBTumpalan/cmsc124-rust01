@@ -46,28 +46,29 @@ fn get_unique_id(product_data: &mut Vec<Product>) -> u32{
         if check_id(product_data, id) == true{
             return id;
         }
+        println!("\n [!] Product ID already exists [!]\n");
     }
 }
 
 fn delete_product(product_data: &mut Vec<Product>, id:u32){
     if product_data.len() == 0{
-        println!("Product list is empty, cannot delete anything.");
+        println!("\n[!] Product list is empty, cannot delete anything. [!] \n");
     }
     for item in 0..(product_data.len()){
         if product_data[item].product_id == id{
-            println!("Product {} deleted!", product_data[item].product_id);
+            println!("\n[!] Product {} deleted [!] \n", product_data[item].product_id);
             product_data.remove(item);
             break;
         }
         else if (item == (product_data.len()-1)) && (product_data[item].product_id != id){
-            println!("Product id not found.");
+            println!("\n[!] Product id not found [!] \n");
         }
     }
 }
 
 fn edit_product(product_data: &mut Vec<Product>, id:u32){
     if product_data.len() == 0{
-        println!("Product list is empty, cannot edit anything.");
+        println!("\n[!] Product list is empty, cannot edit anything.[!]\n");
     }
     for item in 0..(product_data.len()){
         if product_data[item].product_id == id{
@@ -86,17 +87,19 @@ fn edit_product(product_data: &mut Vec<Product>, id:u32){
             product_data[item].price = price;
             product_data[item].quantity = quantity;
 
+            println!("\n[!] Product succesfully edited [!] \n");
+
             break;
         }
         else if (item == (product_data.len()-1)) && (product_data[item].product_id != id){
-            println!("Product id not found.");
+            println!("\n[!] Product id not found [!] \n");
         }
     }
 }
 
 fn edit_customer(customer_data: &mut Vec<Customer>, product_data: &mut Vec<Product>, customer_name: &mut String){
     if product_data.len() == 0{
-        println!("Product list is empty, cannot buy anything.");
+        println!("\n[!] Product list is empty, cannot buy anything. [!] \n");
     } else {
         show_products(product_data);
     }
@@ -104,16 +107,32 @@ fn edit_customer(customer_data: &mut Vec<Customer>, product_data: &mut Vec<Produ
     let mut to_buy = String::new();
     println!("Enter product ID to buy: ");
     io::stdin().read_line(&mut to_buy).expect("Error"); //wait for user input
-    let to_buy:usize = to_buy.trim().parse().expect("Error");
+    let to_buy:u32 = to_buy.trim().parse().expect("Error");
 
-    if product_data[to_buy-1].quantity > 0{
-        for customer in customer_data{
-            if customer.name.eq(customer_name){
-                customer.cart.push((&product_data[to_buy-1].product_name).to_string());
-                customer.total_cost = customer.total_cost + product_data[to_buy-1].price;
-                product_data[to_buy-1].quantity = product_data[to_buy-1].quantity - 1;
-                break;
+    //Get index
+    let mut product_index = product_data.len();
+
+    for index in 0..product_data.len(){
+        if product_data[index].product_id == to_buy{
+            product_index = index;
+        }
+    }
+
+    if product_index == product_data.len(){
+        println!("\n[!] Product not found [!] \n");
+    } else {
+        if product_data[product_index].quantity > 0{
+            for customer in customer_data{
+                if customer.name.eq(customer_name){
+                    customer.cart.push((&product_data[product_index].product_name).to_string());
+                    customer.total_cost = customer.total_cost + product_data[product_index].price;
+                    product_data[product_index].quantity = product_data[product_index].quantity - 1;
+                    println!("\n[!] Product successfully bought [!]\n");
+                    break;
+                }
             }
+        } else {
+            println!("\n[!] Product is out of stock [!]\n");
         }
     }
 
@@ -193,9 +212,10 @@ fn show_products(product_data: &mut Vec<Product>){
 }
 
 fn show_customers(customer_data: &mut Vec<Customer>){
-    println!("============ PRODUCTS =============");
+    println!("============ CUSTOMERS =============");
     if customer_data.len() == 0{
-        println!("[!] There are no customers yet [!]")
+        println!("[!] There are no customers yet [!]");
+        println!("===================================");
     } else {
         for cust in 0..(customer_data.len()) {
             println!("Customer name: {} ", customer_data[cust].name);
@@ -203,10 +223,10 @@ fn show_customers(customer_data: &mut Vec<Customer>){
             for item in &customer_data[cust].cart{
                 println!("- {} ", item);
             }
-            println!("Total shopping cost: {}", customer_data[cust].total_cost)
+            println!("Total shopping cost: {}", customer_data[cust].total_cost);
+            println!("===================================");
         }
     }
-    println!("===================================");
 }
 
 fn main() {
@@ -226,12 +246,19 @@ fn main() {
         if choice == 1 {
             add_product(&mut products);
         }else if choice ==2{
-            let mut name = String::new();
-            println!("Enter customer name: ");
-            io::stdin().read_line(&mut name).expect("Error"); //wait for user input
 
-            add_customer(&mut customers, &mut name);
-            edit_customer(&mut customers, &mut products, &mut name)
+            if products.len() == 0{
+                println!("\n[!] PRODUCT LIST IS STILL EMPTY [!]\n");
+                println!("=======================================");
+            }else {
+
+                let mut name = String::new();
+                println!("Enter customer name: ");
+                io::stdin().read_line(&mut name).expect("Error"); //wait for user input
+
+                add_customer(&mut customers, &mut name);
+                edit_customer(&mut customers, &mut products, &mut name)
+            }
         }
         else if choice ==3{
             let mut id = String::new();
